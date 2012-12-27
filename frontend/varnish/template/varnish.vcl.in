@@ -1,0 +1,197 @@
+#
+backend www { 
+	.host = "${hosts:localhost}";
+	.port = "${ports:backend}";
+	.connect_timeout = 30s; 
+	.first_byte_timeout = 300s; 
+	.between_bytes_timeout = 60s; 
+	.probe = {
+		.url = "/";
+		.timeout = 10s;
+		.window = 8;
+		.threshold = 2;
+		.initial = 3;
+		.interval = 30s;
+		.expected_response = 200;
+	}
+
+} 
+
+backend fail {
+        .host = "127.0.0.1";
+		.port = "0";
+		.probe = { .url = "/fail"; .initial = 0; }
+}
+
+acl purge { 
+	"localhost"; 
+	"127.0.0.1"; 
+
+} 
+
+sub vcl_recv { 
+
+	if (req.restarts == 0) {
+		set req.backend = www;
+	} else {
+		set req.backend = fail;
+	}
+
+	set req.grace = 1d;
+
+	if (!req.backend.healthy) {
+		unset req.http.Cookie;
+	}
+    
+	if (req.request == "PURGE") { 
+		if (!client.ip ~ purge) { 
+			error 405 "Not allowed."; 
+			} 
+		return(lookup); 
+		} 
+
+	if (req.request != "GET" && 
+	req.request != "HEAD" && 
+	req.request != "PUT" && 
+	req.request != "POST" && 
+	req.request != "TRACE" && 
+	req.request != "OPTIONS" && 
+	req.request != "DELETE") { 
+		return(pipe); 
+		} 
+
+	if (req.request != "GET" && req.request != "HEAD") { 
+		return(pass); 
+		} 
+
+	if (req.http.If-None-Match) { 
+		return(pass); 
+		} 
+
+	if (req.url ~ "createObject") { 
+ 		return(pass); 
+		} 
+
+	if (req.request != "GET" && req.request != "HEAD") { 
+		if (req.request == "PURGE") { 
+			if (!client.ip ~ purge) { 
+				error 405 "Not allowed."; 
+				} 
+			return(lookup); 
+			} 
+		return(pipe); 
+		} 
+
+	if (req.http.Expect) { 
+		return(pipe); 
+		} 
+
+	if (req.http.If-None-Match) { 
+		return(pass); 
+		} 
+
+	if (req.url ~ "\.(jpg|jpeg|gif|png|tiff|tif|svg|swf|ico|mp3|mp4|m4a|ogg|mov|avi|wmv)$") { 
+		return(lookup); 
+		} 
+
+	if (req.url ~ "\.(css|js)$") { 
+		return(lookup); 
+		} 
+
+	if (req.url ~ "\.(pdf|xls|vsd|doc|ppt|pps|vsd|doc|ppt|pps|xls|pdf|sxw|zip|gz|bz2|tgz|tar|rar|odc|odb|odf|odg|odi|odp|ods|odt|sxc|sxd|sxi|sxw|dmg|torrent|deb|msi|iso|rpm)$") { 
+		return(lookup); 
+		} 
+
+	if (req.http.Authenticate || req.http.Authorization) { 
+		return(pipe); 
+		} 
+
+	if (req.http.Cookie && req.http.Cookie ~ "__ac(|_(name|password|persistent))=") { 
+		if (req.url ~ "\.(js|css)") { 
+			remove req.http.cookie; 
+			return(lookup); 
+			} 
+		return(pass); 
+		} 
+
+	if (req.http.Cookie && req.http.Cookie ~ "_ZopeId=") { 
+		return(pipe); 
+		} 
+
+	return(lookup); 
+} 
+
+sub vcl_pipe { 
+	set req.http.connection = "close"; 
+} 
+
+sub vcl_hit {
+	return (deliver);
+}
+
+sub vcl_miss {
+	return (fetch);
+}
+
+sub vcl_deliver {
+
+        if (obj.hits > 0) {
+		set resp.http.X-Cache = "HIT";
+		set resp.http.X-Cache-Hits = obj.hits;
+	}else {
+		set resp.http.X-Cache = "MISS";
+	}
+}
+
+sub vcl_fetch {
+
+	if (beresp.http.Set-Cookie) {
+		return(deliver);
+	}
+
+	if (beresp.http.cache-control !~ "s-maxage" && req.url ~ "(\.jpg|\.png|\.gif|\.gz|\.tgz|\.bz2|\.tbz|\.mp3|\.ogg|\.pdf|\.css|\.js|/image_(large|preview|mini|thumb|tile))$") {
+		set beresp.ttl = 1h;
+	}
+	set beresp.grace = 1d;
+	set beresp.http.X-Varnish-beresp-ttl = beresp.ttl;
+	set beresp.http.X-Varnish-beresp-grace = beresp.grace;
+	set beresp.http.X-Varnish-beresp-status = beresp.status;	
+	return (deliver);
+}
+
+sub vcl_error {
+
+	if (req.restarts == 0) {
+		return (restart);
+	}
+
+	set obj.http.Content-Type = "text/html; charset=utf-8";
+
+	synthetic {"
+	<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+	<html>
+	<head>
+		<title>"} + obj.status + " " + obj.response + {"</title>
+	        <style> body {font-family: Tahoma, Verdana, Arial, sans-serif;}</style>
+	</head>
+
+	<body bgcolor="white" text="black">
+		<table width="100%" height="100%">
+		<tr>
+		<td align="center" valign="middle">
+		<p><a href="http://www.liberiun.com"><IMG src="http://127.0.0.1/menu_logo.jpg" alt="Liberiun" width="375" height="265" border="0"></a></p>
+		<p>&nbsp;</p>
+		<p>A p&aacute;gina que voc&ecirc; est&aacute; procurando est&aacute; temporariamente indispon&iacute;vel. <br/>	Por favor, tente novamente mais tarde.</p>
+		<p><strong>Liberiun Network.       </strong></p>
+		</td>
+		</tr>
+		</table>
+	</body>
+	</html>
+
+	"};
+
+	return(deliver);
+}
+

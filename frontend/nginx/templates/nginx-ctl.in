@@ -1,0 +1,3 @@
+#!/bin/bash
+exec ${buildout:parts-directory}/nginx-build/sbin/nginx -c ${buildout:parts-directory}/nginx-build/conf/nginx.conf
+
