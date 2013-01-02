@@ -5,23 +5,7 @@ backend www {
 	.connect_timeout = 30s; 
 	.first_byte_timeout = 300s; 
 	.between_bytes_timeout = 60s; 
-	.probe = {
-		.url = "/";
-		.timeout = 10s;
-		.window = 8;
-		.threshold = 2;
-		.initial = 3;
-		.interval = 30s;
-		.expected_response = 200;
-	}
-
 } 
-
-backend fail {
-        .host = "127.0.0.1";
-		.port = "0";
-		.probe = { .url = "/fail"; .initial = 0; }
-}
 
 acl purge { 
 	"localhost"; 
@@ -31,11 +15,7 @@ acl purge {
 
 sub vcl_recv { 
 
-	if (req.restarts == 0) {
-		set req.backend = www;
-	} else {
-		set req.backend = fail;
-	}
+	set req.backend = www;
 
 	set req.grace = 1d;
 
@@ -135,7 +115,7 @@ sub vcl_miss {
 
 sub vcl_deliver {
 
-        if (obj.hits > 0) {
+	if (obj.hits > 0) {
 		set resp.http.X-Cache = "HIT";
 		set resp.http.X-Cache-Hits = obj.hits;
 	}else {
@@ -161,10 +141,6 @@ sub vcl_fetch {
 
 sub vcl_error {
 
-	if (req.restarts == 0) {
-		return (restart);
-	}
-
 	set obj.http.Content-Type = "text/html; charset=utf-8";
 
 	synthetic {"
@@ -180,7 +156,7 @@ sub vcl_error {
 		<table width="100%" height="100%">
 		<tr>
 		<td align="center" valign="middle">
-		<p><a href="http://www.liberiun.com"><IMG src="http://127.0.0.1/menu_logo.jpg" alt="Liberiun" width="375" height="265" border="0"></a></p>
+		<p><a href="http://www.liberiun.com"><IMG src="/menu_logo.jpg" alt="Liberiun" width="375" height="265" border="0"></a></p>
 		<p>&nbsp;</p>
 		<p>A p&aacute;gina que voc&ecirc; est&aacute; procurando est&aacute; temporariamente indispon&iacute;vel. <br/>	Por favor, tente novamente mais tarde.</p>
 		<p><strong>Liberiun Network.       </strong></p>
