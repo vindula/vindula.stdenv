@@ -69,6 +69,10 @@ sub vcl_recv {
 	if (req.http.If-None-Match) { 
 		return(pass); 
 		} 
+	#não armazena em cache arquivos do editor Ckeditor que gera JS dinamicos
+	if (req.url ~ "ckeditor") {
+		return (pass);
+	}
 
 	if (req.url ~ "\.(jpg|jpeg|gif|png|tiff|tif|svg|swf|ico|mp3|mp4|m4a|ogg|mov|avi|wmv)$") { 
 		return(lookup); 
