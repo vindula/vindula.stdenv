@@ -22,13 +22,6 @@ sub vcl_recv {
 	if (!req.backend.healthy) {
 		unset req.http.Cookie;
 	}
-    
-	if (req.request == "PURGE") { 
-		if (!client.ip ~ purge) { 
-			error 405 "Not allowed."; 
-			} 
-		return(lookup); 
-		} 
 
 	if (req.request != "GET" && 
 	req.request != "HEAD" && 
@@ -38,10 +31,6 @@ sub vcl_recv {
 	req.request != "OPTIONS" && 
 	req.request != "DELETE") { 
 		return(pipe); 
-		} 
-
-	if (req.request != "GET" && req.request != "HEAD") { 
-		return(pass); 
 		} 
 
 	if (req.http.If-None-Match) { 
@@ -110,11 +99,17 @@ sub vcl_pipe {
 } 
 
 sub vcl_hit {
-	return (deliver);
+        if (req.request == "PURGE") {
+                purge;
+                error 200 "Purged.";
+        }
 }
 
 sub vcl_miss {
-	return (fetch);
+        if (req.request == "PURGE") {
+                purge;
+                error 200 "Purged.";
+        }
 }
 
 sub vcl_deliver {
