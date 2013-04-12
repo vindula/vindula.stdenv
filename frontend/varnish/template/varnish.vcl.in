@@ -23,6 +23,13 @@ sub vcl_recv {
 		unset req.http.Cookie;
 	}
 
+	if (req.request == "PURGE") { 
+		if (!client.ip ~ purge) { 
+			error 405 "Not allowed."; 
+			} 
+		return(lookup); 
+		} 
+
 	if (req.request != "GET" && 
 	req.request != "HEAD" && 
 	req.request != "PUT" && 
@@ -41,23 +48,11 @@ sub vcl_recv {
  		return(pass); 
 		} 
 
-	if (req.request != "GET" && req.request != "HEAD") { 
-		if (req.request == "PURGE") { 
-			if (!client.ip ~ purge) { 
-				error 405 "Not allowed."; 
-				} 
-			return(lookup); 
-			} 
-		return(pipe); 
-		} 
-
+	
 	if (req.http.Expect) { 
 		return(pipe); 
 		} 
 
-	if (req.http.If-None-Match) { 
-		return(pass); 
-		} 
 	#não armazena em cache arquivos do editor Ckeditor que gera JS dinamicos
 	if (req.url ~ "ckeditor") {
 		return (pass);
