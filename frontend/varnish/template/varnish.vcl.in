@@ -85,8 +85,6 @@ sub vcl_recv {
 	if (req.http.Cookie && req.http.Cookie ~ "_ZopeId=") { 
 		return(pipe); 
 		} 
-
-	return(lookup); 
 } 
 
 sub vcl_pipe { 
