@@ -59,7 +59,8 @@ http {
 		listen          80 default;
 		server_name     _;
 	
-		access_log      logs/default_access.log;
+		access_log      logs/error_access.log main;
+		error_log       logs/default_access.log;
 
 		server_name_in_redirect  off;
 

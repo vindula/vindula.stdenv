@@ -74,8 +74,10 @@ sub vcl_recv {
 		return(pipe); 
 		} 
 
+	#não faz cache de objetos com cookie de autenticação
 	if (req.http.Cookie && req.http.Cookie ~ "__ac(|_(name|password|persistent))=") { 
-		if (req.url ~ "\.(js|css)") { 
+		#remove cookie de autenticação dos tipos js e css
+		if (req.url ~ "\.(js|css)$") { 
 			remove req.http.cookie; 
 			return(lookup); 
 			} 
