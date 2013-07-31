@@ -1,0 +1,4 @@
+Para adicionar o script de inicialização do supervisor ao boot da maquina utilize os comandos a seguir:
+
+sudo cp supervisord.sh /etc/init.d/
+sudo update-rc.d supervisord.sh defaults
