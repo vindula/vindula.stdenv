@@ -76,6 +76,19 @@ http {
 		location /haproxy-status {
 			proxy_pass http://127.0.0.1:9000/haproxy-status;
 		}
+	
+		location /http-bind {
+			proxy_pass http://localhost:7070/http-bind/;
+		}
+
+		location ^~ /http-user/ {
+			rewrite ^/http-user/(.*) /$1 break;
+			proxy_pass http://localhost:9090/;
+		}
+	
+		location /jappix {
+			proxy_pass http://localhost:7070/jappix;
+		}
 
 		location /nginx_status {
 			stub_status on;
