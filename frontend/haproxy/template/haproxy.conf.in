@@ -55,6 +55,6 @@ backend producao
   # "check" enables health checks
   # "rise 1" means consider Zope up after 1 successful health check
   
-  server  plone-01 127.0.0.1:8081 cookie p-01 check inter 20000 maxconn 20 rise 1
-  server  plone-02 127.0.0.1:8082 cookie p-02 check inter 20000 maxconn 20 rise 1
-  server  plone-03 127.0.0.1:8083 cookie p-03 check inter 20000 maxconn 20 rise 1
+  server  plone-01 127.0.0.1:8081 cookie p-01 check inter 20000 maxconn 50 rise 1
+  server  plone-02 127.0.0.1:8082 cookie p-02 check inter 20000 maxconn 50 rise 1
+  server  plone-03 127.0.0.1:8083 cookie p-03 check inter 20000 maxconn 50 rise 1
