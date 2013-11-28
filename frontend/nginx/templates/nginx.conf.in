@@ -56,11 +56,11 @@ http {
 	include ${buildout:directory}/sites-enabled/*.conf;
 
 	server {
-		listen          80 default;
+		listen          80;
 		server_name     _;
 	
-		access_log      logs/error_access.log main;
-		error_log       logs/default_access.log;
+		access_log      logs/default_access.log main;
+		error_log       logs/default_error.log;
 
 		server_name_in_redirect  off;
 
