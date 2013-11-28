@@ -33,12 +33,12 @@ errorfile 503 ${buildout:directory}/template/html/50x.html
   stats realm Haproxy\ statistics
   stats auth admin:vindula
 
-frontend Producao
-  bind ${haproxy-conf:bind_producao}
-  default_backend producao
+frontend Intranet
+  bind ${haproxy-conf:bind_intranet}
+  default_backend intranet
 
 # Load balancing over the zope instances
-backend producao
+backend intranet
   # Use Zope's __ac cookie as a basis for session stickiness if present.
   appsession __ac len 32 timeout 1d
   # Otherwise add a cookie called "serverid" for maintaining session stickiness.
@@ -55,6 +55,6 @@ backend producao
   # "check" enables health checks
   # "rise 1" means consider Zope up after 1 successful health check
   
-  server  plone-01 127.0.0.1:8081 cookie p-01 check inter 20000 maxconn 50 rise 1
-  server  plone-02 127.0.0.1:8082 cookie p-02 check inter 20000 maxconn 50 rise 1
-  server  plone-03 127.0.0.1:8083 cookie p-03 check inter 20000 maxconn 50 rise 1
+  server  plone-01 127.0.0.1:8081 cookie p-01 check inter 20s maxconn 50 rise 1
+  server  plone-02 127.0.0.1:8082 cookie p-02 check inter 20s maxconn 50 rise 1
+  server  plone-03 127.0.0.1:8083 cookie p-03 check inter 20s maxconn 50 rise 1
