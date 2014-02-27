@@ -97,6 +97,10 @@ http {
 			deny all;
 		}
 
+		location /awstats {
+			return 301 $scheme://$http_host/awstats.pl?config=$http_host;
+		}
+
 		location ~ ^/icon {
 			root  ${buildout:directory}/templates/awstats/wwwroot;
 		}
