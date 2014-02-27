@@ -1,7 +1,7 @@
-daemon off;
-#user  nobody;
+daemon	off;
+user	vindula;
 worker_processes  4;
-
+#
 error_log  logs/error.log;
 #error_log  logs/error.log  notice;
 #error_log  logs/error.log  info;
@@ -96,6 +96,21 @@ http {
 			allow 127.0.0.1;
 			deny all;
 		}
+
+		location ~ ^/icon {
+			root  ${buildout:directory}/templates/awstats/wwwroot;
+		}
+
+		location ~ \.pl$ {
+			auth_basic            "Acesso Restrito";
+			auth_basic_user_file  ${buildout:directory}/templates/awstats/htpasswd;
+			root  ${buildout:directory}/templates/awstats/wwwroot/cgi-bin;
+			fastcgi_pass unix:/var/run/fcgiwrap.socket;
+			fastcgi_index index.pl;
+			fastcgi_param SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+			include fastcgi_params;
+		}
+
 
 		error_page   500 502 503 504  /50x.html;
 			location = /50x.html {
