@@ -1,0 +1,10 @@
+## Instalação do FastCGI wrapper fcgiwrap
+
+sudo apt-get install fcgiwrap spawn-fcgi
+
+## Ajustes
+
+sudo sed -i 's/FCGI_SOCKET_OWNER="www-data"/FCGI_SOCKET_OWNER="vindula"/g' /etc/init.d/fcgiwrap
+sudo sed -i 's/FCGI_SOCKET_GROUP="www-data"/FCGI_SOCKET_GROUP="vindula"/g' /etc/init.d/fcgiwrap
+sudo /etc/init.d/fcgiwrap restart
+ls -lh /var/run/fcgiwrap.socket
