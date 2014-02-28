@@ -8,3 +8,6 @@ sudo sed -i 's/FCGI_SOCKET_OWNER="www-data"/FCGI_SOCKET_OWNER="vindula"/g' /etc/
 sudo sed -i 's/FCGI_SOCKET_GROUP="www-data"/FCGI_SOCKET_GROUP="vindula"/g' /etc/init.d/fcgiwrap
 sudo /etc/init.d/fcgiwrap restart
 ls -lh /var/run/fcgiwrap.socket
+
+## Crontab
+*/10 * * * * /opt/intranet/frontend/nginx/templates/awstats/wwwroot/cgi-bin/awstats.pl -update -config=intranet.vindula.com.br
