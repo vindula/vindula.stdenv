@@ -1,11 +1,19 @@
 #
-backend www { 
+backend vindula { 
 	.host = "${hosts:localhost}";
-	.port = "${ports:backend}";
-	.connect_timeout = 30s; 
+	.port = "${ports:backend-vindula}";
+	.connect_timeout = 120s; 
 	.first_byte_timeout = 300s; 
 	.between_bytes_timeout = 60s; 
 } 
+
+backend vindula_app { 
+	.host = "${hosts:localhost}";
+	.port = "${ports:backend-vindula-app}";
+	.connect_timeout = 120s; 
+	.first_byte_timeout = 300s; 
+	.between_bytes_timeout = 60s; 
+}
 
 acl purge { 
 	"localhost"; 
@@ -15,8 +23,12 @@ acl purge {
 
 sub vcl_recv { 
 
-	set req.backend = www;
-
+	if (req.url ~ "^/vindula-api?") {
+		set req.backend = vindula_app;
+	} else {
+		set req.backend = vindula;
+	}
+	
 	set req.grace = 1d;
 
 	if (!req.backend.healthy) {
@@ -164,4 +176,3 @@ sub vcl_error {
 
 	return(deliver);
 }
-
