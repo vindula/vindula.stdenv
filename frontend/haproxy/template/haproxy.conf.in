@@ -33,28 +33,79 @@ errorfile 503 ${buildout:directory}/template/html/50x.html
   stats realm Haproxy\ statistics
   stats auth admin:vindula
 
-frontend Intranet
-  bind ${haproxy-conf:bind_intranet}
-  default_backend intranet
+frontend Vindula
+  bind ${haproxy-conf:bind_vindula}
+  default_backend vindula
 
 # Load balancing over the zope instances
-backend intranet
-  # Use Zope's __ac cookie as a basis for session stickiness if present.
+backend vindula
   appsession __ac len 32 timeout 1d
-  # Otherwise add a cookie called "serverid" for maintaining session stickiness.
-  # This cookie lasts until the client's browser closes, and is invisible to Zope.
   cookie serverid-SR01 insert nocache indirect
-  # If no session found, use the roundrobin load-balancing algorithm to pick a backend.
   balance roundrobin
-  # Use / (the default) for periodic backend health checks
   option httpchk
-
-  # Server options:
-  # "cookie" sets the value of the serverid cookie to be used for the server
-  # "maxconn" is how many connections can be sent to the server at once
-  # "check" enables health checks
-  # "rise 1" means consider Zope up after 1 successful health check
   
-  server  plone-01 127.0.0.1:8081 cookie p-01 check inter 20s maxconn 50 rise 1
-  server  plone-02 127.0.0.1:8082 cookie p-02 check inter 20s maxconn 50 rise 1
-  server  plone-03 127.0.0.1:8083 cookie p-03 check inter 20s maxconn 50 rise 1
+  timeout server  600s
+  contimeout      600s
+  clitimeout      600s
+  srvtimeout      600s
+
+  server  plone-01 10.10.10.10:8081 cookie p-01 check inter 20s maxconn 50 rise 1
+  server  plone-02 10.10.10.10:8082 cookie p-02 check inter 20s maxconn 50 rise 1
+  server  plone-03 10.10.10.10:8083 cookie p-03 check inter 20s maxconn 50 rise 1
+
+frontend Vindula-APP
+  bind ${haproxy-conf:bind_vindula_app}
+  default_backend vindulaapp
+
+# Load balancing over the zope instances
+backend vindulaapp
+  appsession __ac len 32 timeout 1d
+  cookie serverid-SR01 insert nocache indirect
+  balance roundrobin
+  option httpchk GET /vindula-api/admin
+
+  timeout server  600s
+  contimeout      600s
+  clitimeout      600s
+  srvtimeout      600s
+  
+  server  django-01 10.10.10.10:8000 cookie dj-01 check inter 20s maxconn 150 rise 1
+
+#homolog
+frontend Vindula-Homolog
+  bind ${haproxy-conf:bind_vindula_homolog}
+  default_backend vindula_homolog
+
+# Load balancing over the zope instances
+backend vindula_homolog
+  appsession __ac len 32 timeout 1d
+  cookie serverid-SR01 insert nocache indirect
+  balance roundrobin
+  option httpchk
+  
+  timeout server  600s
+  contimeout      600s
+  clitimeout      600s
+  srvtimeout      600s
+
+  server  plone-01 20.20.20.20:8081 cookie ph-01 check inter 20s maxconn 50 rise 1
+  server  plone-02 20.20.20.20:8082 cookie ph-02 check inter 20s maxconn 50 rise 1
+  server  plone-03 20.20.20.20:8083 cookie ph-03 check inter 20s maxconn 50 rise 1
+
+frontend Vindula-APP-Homolog
+  bind ${haproxy-conf:bind_vindula_app_homolog}
+  default_backend vindula_app_homolog
+
+# Load balancing over the zope instances
+backend vindula_app_homolog
+  appsession __ac len 32 timeout 1d
+  cookie serverid-SR01 insert nocache indirect
+  balance roundrobin
+  option httpchk GET /vindula-api/admin
+
+  timeout server  600s
+  contimeout      600s
+  clitimeout      600s
+  srvtimeout      600s
+  
+  server  django-01 20.20.20.20:8000 cookie djh-01 check inter 20s maxconn 150 rise 1
