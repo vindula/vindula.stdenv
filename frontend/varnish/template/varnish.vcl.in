@@ -119,6 +119,8 @@ sub vcl_deliver {
 
 sub vcl_fetch {
 
+	set beresp.do_gzip = true;
+
 	if (beresp.http.Set-Cookie) {
 		return(deliver);
 	}
